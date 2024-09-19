@@ -1,6 +1,10 @@
 from rest_framework import viewsets
+from reviews.models import Category, Genre, Title, User
 
-from .models import Category, Genre, Title
+
+class UserViewSet(viewsets.ModelViewSet):
+    """ViewSet для управления пользователями."""
+    queryset = User.objects.all()
 
 
 class CategoryViewSet(viewsets.GenericViewSet):

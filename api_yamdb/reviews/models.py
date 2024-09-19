@@ -1,6 +1,48 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 from .validators import validate_year
+
+
+class User(AbstractUser):
+    """Кастомизированная модель пользователя."""
+    USER = 'user'
+    MODERATOR = 'moderator'
+    ADMIN = 'admin'
+
+    CHOICES_ROLE = [
+        (USER, 'Пользователь'),
+        (MODERATOR, 'Модератор'),
+        (ADMIN, 'Администратор'),
+    ]
+
+    email = models.EmailField('Почта', max_length=100, unique=True)
+    role = models.CharField('Роль пользователя',
+                            max_length=50,
+                            default=USER,
+                            choices=CHOICES_ROLE)
+    bio = models.TextField('Биография', blank=True, null=True)
+    confirmation_code = models.CharField('Код авторизации',
+                                         max_length=20,
+                                         blank=True,
+                                         null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['username', 'email'], name='unique_user')
+        ]
+
+    def __str__(self):
+        return self.username
+
+    @property
+    def is_admin(self):
+        return self.is_superuser or self.role == self.ADMIN or self.is_staff
+
+    @property
+    def is_moderator(self):
+        return self.role == self.MODERATOR
 
 
 class Category(models.Model):
@@ -32,7 +74,7 @@ class Title(models.Model):
         'Название произведения', max_length=256, db_index=True
     )
     year = models.IntegerField(
-        'Год выпуска', validators=[validate_year], db_index=True
+        'Год выпуска', validators=(validate_year,), db_index=True
     )
     description = models.TextField('Описание', blank=True, null=True)
     genre = models.ManyToManyField(

@@ -1,6 +1,6 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.conf import settings
 
 from .validators import validate_year
 
@@ -17,17 +17,13 @@ class User(AbstractUser):
         (ADMIN, 'Администратор'),
     ]
 
-    email = models.EmailField('Почта', max_length=settings.MAX_EMAIL_LENGHT,
+    email = models.EmailField('Почта', max_length=settings.MAX_EMAIL_LENGTH,
                               unique=True)
     role = models.CharField('Роль пользователя',
-                            max_length=settings.MAX_ROLE_LENGHT,
+                            max_length=settings.MAX_ROLE_LENGTH,
                             default=USER,
                             choices=CHOICES_ROLE)
     bio = models.TextField('Биография', blank=True, null=True)
-    confirmation_code = models.CharField('Код авторизации',
-                                         max_length=20,
-                                         blank=True,
-                                         null=True)
 
     class Meta:
         constraints = [

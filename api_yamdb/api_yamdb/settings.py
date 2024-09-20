@@ -135,3 +135,9 @@ VERSION = 'v1/'
 MAX_EMAIL_LENGTH = 254
 
 MAX_ROLE_LENGTH = 9
+
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+
+EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
+
+DEFAULT_FROM_EMAIL = 'signup@yamdb.ru'

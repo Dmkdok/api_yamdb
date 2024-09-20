@@ -25,8 +25,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 
 class ObtainTokenSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(max_length=50)
-    confirmation_code = serializers.CharField(max_length=15)
+    username = serializers.CharField(max_length=150)
+    confirmation_code = serializers.CharField()
 
     class Meta:
         model = User

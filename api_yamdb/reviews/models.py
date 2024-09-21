@@ -1,12 +1,16 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 from .validators import validate_year
+
+from api_yamdb.settings import TEXT_LENGTH
 
 
 class User(AbstractUser):
     """Кастомизированная модель пользователя."""
+
     USER = 'user'
     MODERATOR = 'moderator'
     ADMIN = 'admin'
@@ -17,18 +21,22 @@ class User(AbstractUser):
         (ADMIN, 'Администратор'),
     ]
 
-    email = models.EmailField('Почта', max_length=settings.MAX_EMAIL_LENGTH,
-                              unique=True)
-    role = models.CharField('Роль пользователя',
-                            max_length=settings.MAX_ROLE_LENGTH,
-                            default=USER,
-                            choices=CHOICES_ROLE)
+    email = models.EmailField(
+        'Почта', max_length=settings.MAX_EMAIL_LENGTH, unique=True
+    )
+    role = models.CharField(
+        'Роль пользователя',
+        max_length=settings.MAX_ROLE_LENGTH,
+        default=USER,
+        choices=CHOICES_ROLE,
+    )
     bio = models.TextField('Биография', blank=True, null=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['username', 'email'], name='unique_user')
+                fields=['username', 'email'], name='unique_user'
+            )
         ]
 
     def __str__(self):
@@ -110,3 +118,53 @@ class GenreTitle(models.Model):
 
     def __str__(self):
         return f'{self.title} - {self.genre}'
+
+
+class Review(models.Model):
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='reviews'
+    )
+    title = models.ForeignKey(
+        Title, on_delete=models.CASCADE, related_name='reviews'
+    )
+    text = models.TextField()
+    pub_date = models.DateTimeField(
+        'Дата публикации', auto_now_add=True, db_index=True
+    )
+    score = models.IntegerField(
+        'Оценка', validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
+
+    class Meta:
+        ordering = ['-pub_date']
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'title'], name='unique_review'
+            )
+        ]
+
+    def __str__(self):
+        return self.text[:TEXT_LENGTH]
+
+
+class Comment(models.Model):
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='comments'
+    )
+    review = models.ForeignKey(
+        Review, on_delete=models.CASCADE, related_name='comments'
+    )
+    text = models.TextField()
+    pub_date = models.DateTimeField(
+        'Дата публикации', auto_now_add=True, db_index=True
+    )
+
+    class Meta:
+        ordering = ['-pub_date']
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
+
+    def __str__(self):
+        return self.text[:TEXT_LENGTH]

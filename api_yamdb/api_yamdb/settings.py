@@ -136,6 +136,8 @@ MAX_EMAIL_LENGTH = 254
 
 MAX_ROLE_LENGTH = 9
 
+TEXT_LENGTH = 15
+
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
 EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'

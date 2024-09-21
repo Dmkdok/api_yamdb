@@ -5,8 +5,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 from .validators import validate_year
 
-from api_yamdb.settings import TEXT_LENGTH
-
 
 class User(AbstractUser):
     """Кастомизированная модель пользователя."""
@@ -146,7 +144,7 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        return self.text[:TEXT_LENGTH]
+        return self.text[:settings.TEXT_LENGTH]
 
 
 class Comment(models.Model):
@@ -167,4 +165,4 @@ class Comment(models.Model):
         verbose_name_plural = 'Комментарии'
 
     def __str__(self):
-        return self.text[:TEXT_LENGTH]
+        return self.text[:settings.TEXT_LENGTH]

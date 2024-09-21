@@ -4,6 +4,8 @@ from rest_framework.exceptions import ValidationError
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
+# НУЖНО ДОДЕЛАТЬ ДОКСТРИНГИ И ПРОВЕРИТЬ ИМПОРТЫ!!!
+
 
 class UserSerializer(serializers.ModelSerializer):
 
@@ -18,12 +20,27 @@ class UserSerializer(serializers.ModelSerializer):
         )
         model = User
 
+# ЭТО АНДРЕЙ МОЖЕТ ЗАСТРАТЬ ТЕМ, ЧТО ДВАЖДЫ ПОВТОРЯЕТСЯ ТАКЖЕ В СЛЕДУЮЩЕМ КЛАССЕ, НАДО ПОДУМАТЬ КАК ИСПРАВИТЬ!!!!
+    def validate(self, data):
+        if data.get('username') != 'me':
+            return data
+        raise serializers.ValidationError(
+            'Невозможное имя пользователя'
+        )
+
 
 class RegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
         fields = ('email', 'username')
+
+    def validate(self, data):
+        if data.get('username') != 'me':
+            return data
+        raise serializers.ValidationError(
+            'Невозможное имя пользователя'
+        )
 
 
 class ObtainTokenSerializer(serializers.ModelSerializer):
@@ -67,7 +84,7 @@ class TitleSerializer(serializers.ModelSerializer):
         average_rating = obj.reviews.aggregate(Avg('score')).get('score__avg')
         if average_rating is not None:
             return round(average_rating)
-        return None  # Возвращаем None, если отзывов нет
+        return None
 
 
 class TitleCreateSerializer(serializers.ModelSerializer):
@@ -87,7 +104,6 @@ class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
-        queryset=User.objects.all(),
     )
 
     class Meta:

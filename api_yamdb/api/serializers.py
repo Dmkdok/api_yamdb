@@ -65,7 +65,7 @@ class TitleSerializer(serializers.ModelSerializer):
         Рассчитывает средний рейтинг произведения на основе отзывов.
         """
         average_rating = obj.reviews.aggregate(Avg('score')).get('score__avg')
-        if average_rating:
+        if average_rating is not None:
             return round(average_rating)
         return None  # Возвращаем None, если отзывов нет
 
@@ -100,8 +100,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         Проверяем, что отзыв для данного автора и произведения уже существует.
         """
         request = self.context.get('request')
-        if request is None:
-            return data
         title_id = self.context['view'].kwargs.get('title_id')
         if request.method == 'POST':
             if Review.objects.filter(

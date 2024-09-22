@@ -144,10 +144,11 @@ class GenreViewSet(CreateListDestroyViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     """ViewSet для управления произведениями."""
 
+
     queryset = Title.objects.annotate(
         rating=Avg('reviews__score')).order_by('name')
     permission_classes = (AllReadOrIsAdminOnly,)
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     http_method_names = settings.METHOD_ALLOW
 

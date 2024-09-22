@@ -19,15 +19,6 @@ class UserSerializer(serializers.ModelSerializer):
         )
         model = User
 
-# ЭТО АНДРЕЙ МОЖЕТ ЗАСТРАТЬ ТЕМ, ЧТО ДВАЖДЫ ПОВТОРЯЕТСЯ ТАКЖЕ В СЛЕДУЮЩЕМ КЛАССЕ, НАДО ПОДУМАТЬ КАК ИСПРАВИТЬ!!!!
-    def validate(self, data):
-        """Проверка на использование имени 'me' в качестве username."""
-        if data.get('username') != 'me':
-            return data
-        raise serializers.ValidationError(
-            'Имя пользователя не должно совпадать с эндпоинтом!'
-        )
-
 
 class RegistrationSerializer(serializers.ModelSerializer):
     """Сериализатор для регистрации."""
@@ -36,10 +27,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = ('email', 'username')
 
-    def validate(self, data):
+    def validate_username(self, value):
         """Проверка на использование имени 'me' в качестве username."""
-        if data.get('username') != 'me':
-            return data
+        if value != 'me':
+            return value
         raise serializers.ValidationError(
             'Имя пользователя не должно совпадать с эндпоинтом!'
         )

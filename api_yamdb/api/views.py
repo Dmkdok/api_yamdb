@@ -37,36 +37,31 @@ from .serializers import (
 class RegistrationView(APIView):
     """Регистрация пользователя."""
 
-# ЭТО НУЖНО ОТРЕДАКТИРОВАТЬ, ВЫГЛЯДИТ УЖАСНО!!!!
-# Проблема в том, что если убрать часть после ещеесли, то тесты ругаются на то, что "пользователя создал админ, нужно чтобы работало"
-# До этого работало только если пользователь сам регистрируется
+    def send_mail(self, user):
+        confirmation_code = default_token_generator.make_token(user)
+        send_mail(
+            subject='Регистрация пользователя',
+            message=f'Код подтверждения: {confirmation_code}',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+        )
+
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            confirmation_code = default_token_generator.make_token(user)
-            send_mail(
-                subject='Регистрация пользователя',
-                message=f'Код подтверждения: {confirmation_code}',
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-            )
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        elif not serializer.is_valid():
-            email = serializer.initial_data.get('email')
-            user = User.objects.filter(email=email).first()
+        if not serializer.is_valid():
+            user = User.objects.filter(
+                email=serializer.initial_data.get('email')
+            ).first()
             if user and user.username == serializer.initial_data.get(
                 'username'
             ):
-                confirmation_code = default_token_generator.make_token(user)
-                send_mail(
-                    subject='Регистрация пользователя',
-                    message=f'Код подтверждения: {confirmation_code}',
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[user.email],
-                )
+                user.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+        user = serializer.save()
+        self.send_mail(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class AuthTokenView(APIView):
@@ -95,7 +90,6 @@ class UserViewSet(viewsets.ModelViewSet):
     """ViewSet для управления пользователями."""
 
     permission_classes = (IsAdmin,)
-
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = "username"
@@ -143,7 +137,6 @@ class GenreViewSet(CreateListDestroyViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """ViewSet для управления произведениями."""
-
 
     queryset = Title.objects.annotate(
         rating=Avg('reviews__score')).order_by('name')

@@ -4,10 +4,9 @@ from rest_framework.exceptions import ValidationError
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
-# НУЖНО ДОДЕЛАТЬ ДОКСТРИНГИ И ПРОВЕРИТЬ ИМПОРТЫ!!!
-
 
 class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели пользователя."""
 
     class Meta:
         fields = (
@@ -22,28 +21,33 @@ class UserSerializer(serializers.ModelSerializer):
 
 # ЭТО АНДРЕЙ МОЖЕТ ЗАСТРАТЬ ТЕМ, ЧТО ДВАЖДЫ ПОВТОРЯЕТСЯ ТАКЖЕ В СЛЕДУЮЩЕМ КЛАССЕ, НАДО ПОДУМАТЬ КАК ИСПРАВИТЬ!!!!
     def validate(self, data):
+        """Проверка на использование имени 'me' в качестве username."""
         if data.get('username') != 'me':
             return data
         raise serializers.ValidationError(
-            'Невозможное имя пользователя'
+            'Имя пользователя не должно совпадать с эндпоинтом!'
         )
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
+    """Сериализатор для регистрации."""
 
     class Meta:
         model = User
         fields = ('email', 'username')
 
     def validate(self, data):
+        """Проверка на использование имени 'me' в качестве username."""
         if data.get('username') != 'me':
             return data
         raise serializers.ValidationError(
-            'Невозможное имя пользователя'
+            'Имя пользователя не должно совпадать с эндпоинтом!'
         )
 
 
 class ObtainTokenSerializer(serializers.ModelSerializer):
+    """Сериализатор для токена."""
+
     username = serializers.CharField(max_length=150)
     confirmation_code = serializers.CharField()
 
@@ -53,6 +57,7 @@ class ObtainTokenSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    """Сериализатор для категорий."""
 
     class Meta:
         model = Category
@@ -61,6 +66,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
+    """Сериализатор для жанров."""
 
     class Meta:
         model = Genre
@@ -69,6 +75,8 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
+    """Сериализатор для произведений."""
+
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
     rating = serializers.SerializerMethodField()
@@ -88,6 +96,8 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class TitleCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор для созадния произведений."""
+
     genre = serializers.SlugRelatedField(
         slug_field='slug', many=True, queryset=Genre.objects.all()
     )
@@ -101,6 +111,8 @@ class TitleCreateSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор для отзывов."""
+
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
@@ -132,6 +144,8 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор для комментариев."""
+
     author = serializers.SlugRelatedField(
         read_only=True,
         slug_field='username',

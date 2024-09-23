@@ -3,16 +3,6 @@ import csv
 from django.core.management.base import BaseCommand
 from django.db.utils import IntegrityError
 
-from reviews.models import (
-    Category,
-    Comment,
-    Genre,
-    GenreTitle,
-    Review,
-    Title,
-    User,
-)
-
 # Словарь соответствий названий файлов CSV и моделей
 MODEL_FILES = {
     'Category': 'category.csv',

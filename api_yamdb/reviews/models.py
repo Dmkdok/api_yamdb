@@ -49,41 +49,48 @@ class User(AbstractUser):
         return self.role == self.MODERATOR
 
 
-class Category(models.Model):
-    """Модель категории."""
+class NameSlugBase(models.Model):
+    """Базовая модель."""
 
-    name = models.CharField('Название категории', max_length=256, unique=True)
-    slug = models.SlugField('Slug категории', max_length=50, unique=True)
+    name = models.CharField(
+        'Название', max_length=settings.MAX_NAME_LENGTH, unique=True
+    )
+    slug = models.SlugField(
+        'Slug', max_length=settings.MAX_SLUG_LENGTH, unique=True
+    )
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.name
+
+
+class Category(NameSlugBase):
+    """Модель категории."""
 
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
-    def __str__(self):
-        return self.name
 
-
-class Genre(models.Model):
+class Genre(NameSlugBase):
     """Модель жанра."""
-
-    name = models.CharField('Название жанра', max_length=256, unique=True)
-    slug = models.SlugField('Slug жанра', max_length=50, unique=True)
 
     class Meta:
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
-
-    def __str__(self):
-        return self.name
 
 
 class Title(models.Model):
     """Модель произведения."""
 
     name = models.CharField(
-        'Название произведения', max_length=256, db_index=True
+        'Название произведения',
+        max_length=settings.MAX_NAME_LENGTH,
+        db_index=True,
     )
-    year = models.IntegerField(
+    year = models.PositiveSmallIntegerField(
         'Год выпуска', validators=(validate_year,), db_index=True
     )
     description = models.TextField('Описание', blank=True, null=True)
@@ -106,26 +113,6 @@ class Title(models.Model):
         return self.name
 
 
-class GenreTitle(models.Model):
-    """Модель жанра произведения."""
-
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
-    title = models.ForeignKey(Title, on_delete=models.CASCADE)
-
-    class Meta:
-        verbose_name = 'Произведение и жанр'
-        verbose_name_plural = 'Произведения и жанры'
-        constraints = (
-            models.UniqueConstraint(
-                fields=('genre', 'title'),
-                name='unique_genre_title',
-            ),
-        )
-
-    def __str__(self):
-        return f'{self.title} - {self.genre}'
-
-
 class Review(models.Model):
     """Модель отзыва."""
 
@@ -139,7 +126,7 @@ class Review(models.Model):
     pub_date = models.DateTimeField(
         'Дата публикации', auto_now_add=True, db_index=True
     )
-    score = models.IntegerField(
+    score = models.PositiveSmallIntegerField(
         'Оценка', validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
 
@@ -154,7 +141,7 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        return self.text[:settings.TEXT_LENGTH]
+        return self.text[: settings.TEXT_LENGTH]
 
 
 class Comment(models.Model):
@@ -177,4 +164,4 @@ class Comment(models.Model):
         verbose_name_plural = 'Комментарии'
 
     def __str__(self):
-        return self.text[:settings.TEXT_LENGTH]
+        return self.text[: settings.TEXT_LENGTH]

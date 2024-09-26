@@ -9,3 +9,12 @@ def validate_year(value):
         raise ValidationError(
             f'Год выпуска не может быть больше текущего года ({current_year}).'
         )
+
+
+def validate_username(value):
+    """Проверка на использование имени 'me' в качестве username."""
+
+    if value == 'me':
+        raise ValidationError(
+            'Имя пользователя не должно совпадать с эндпоинтом!'
+        )

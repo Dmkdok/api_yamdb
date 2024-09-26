@@ -143,6 +143,8 @@ MAX_SLUG_LENGTH = 50
 
 TEXT_LENGTH = 15
 
+USERNAME_LENGTH = 150
+
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
 EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'

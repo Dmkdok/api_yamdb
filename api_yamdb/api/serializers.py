@@ -1,7 +1,11 @@
+from django.conf import settings
+from django.core.validators import RegexValidator
+from django.db.utils import IntegrityError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
+from reviews.validators import validate_username
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -19,31 +23,32 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
 
 
-class RegistrationSerializer(serializers.ModelSerializer):
+class RegistrationSerializer(serializers.Serializer):
     """Сериализатор для регистрации."""
 
-    class Meta:
-        model = User
-        fields = ('email', 'username')
+    username = serializers.CharField(
+        max_length=settings.USERNAME_LENGTH,
+        validators=[
+            RegexValidator(regex=r'^[\w.@+-]+\Z'),
+            validate_username
+        ],
+    )
+    email = serializers.EmailField(max_length=settings.MAX_EMAIL_LENGTH)
 
-    def validate_username(self, value):
-        """Проверка на использование имени 'me' в качестве username."""
-        if value != 'me':
-            return value
-        raise serializers.ValidationError(
-            'Имя пользователя не должно совпадать с эндпоинтом!'
-        )
+    def create(self, validated_data):
+        """Создание/получение user."""
+        try:
+            user, _ = User.objects.get_or_create(**validated_data)
+        except IntegrityError:
+            raise ValidationError('Имя пользователя и/или email не валидно')
+        return user
 
 
-class ObtainTokenSerializer(serializers.ModelSerializer):
+class ObtainTokenSerializer(serializers.Serializer):
     """Сериализатор для токена."""
 
-    username = serializers.CharField(max_length=150)
+    username = serializers.CharField(max_length=settings.USERNAME_LENGTH)
     confirmation_code = serializers.CharField()
-
-    class Meta:
-        model = User
-        fields = ('username', 'confirmation_code')
 
 
 class CategorySerializer(serializers.ModelSerializer):

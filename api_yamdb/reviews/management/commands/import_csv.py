@@ -3,15 +3,25 @@ import csv
 from django.core.management.base import BaseCommand
 from django.db.utils import IntegrityError
 
-# Словарь соответствий названий файлов CSV и моделей
+from reviews.models import (
+    Category,
+    Genre,
+    Title,
+    GenreTitle,
+    User,
+    Review,
+    Comment,
+)
+
+# Словарь соответствий моделей и названий файлов CSV
 MODEL_FILES = {
-    'Category': 'category.csv',
-    'Genre': 'genre.csv',
-    'Title': 'titles.csv',
-    'GenreTitle': 'genre_title.csv',
-    'User': 'users.csv',
-    'Review': 'review.csv',
-    'Comment': 'comments.csv',
+    Category: 'category.csv',
+    Genre: 'genre.csv',
+    Title: 'titles.csv',
+    GenreTitle: 'genre_title.csv',
+    User: 'users.csv',
+    Review: 'review.csv',
+    Comment: 'comments.csv',
 }
 
 
@@ -19,7 +29,7 @@ class Command(BaseCommand):
     help = 'Загрузка данных из CSV файлов в базу данных.'
 
     def handle(self, *args, **options):
-        for model_name, csv_file in MODEL_FILES.items():
+        for model, csv_file in MODEL_FILES.items():
             self.stdout.write(
                 self.style.SUCCESS(f'Загрузка данных из {csv_file}...')
             )
@@ -35,25 +45,15 @@ class Command(BaseCommand):
                     for field_name in data.copy():
                         if field_name.endswith('_id'):
                             try:
-                                model_name = field_name[:-3].capitalize()
-                                # Получаем класс модели по имени
-                                related_model = globals()[model_name]
-                                data[field_name[:-3]] = (
-                                    related_model.objects.get(
-                                        id=data[field_name]
-                                    )
+                                related_model_name = field_name[
+                                    :-3
+                                ].capitalize()
+                                related_model = globals()[related_model_name]
+                                related_instance = related_model.objects.get(
+                                    id=data[field_name]
                                 )
-                                # Удаляем поле с _id
+                                data[field_name[:-3]] = related_instance
                                 del data[field_name]
-                            except related_model.DoesNotExist:
-                                self.stdout.write(
-                                    self.style.WARNING(
-                                        f'Ошибка целостности: {model_name} '
-                                        f'с id={data[field_name]} не найден, '
-                                        f'строка {row} пропущена.'
-                                    )
-                                )
-                                continue
                             except KeyError:
                                 self.stdout.write(
                                     self.style.WARNING(
@@ -63,9 +63,19 @@ class Command(BaseCommand):
                                     )
                                 )
                                 continue
+                            except related_model.DoesNotExist:
+                                self.stdout.write(
+                                    self.style.WARNING(
+                                        f'Ошибка целостности: '
+                                        f'{related_model_name} '
+                                        f'с id={data[field_name]} не найден, '
+                                        f'строка {row} пропущена.'
+                                    )
+                                )
+                                continue
 
                     try:
-                        eval(model_name).objects.create(**data)
+                        model.objects.create(**data)
                     except IntegrityError:
                         self.stdout.write(
                             self.style.WARNING(

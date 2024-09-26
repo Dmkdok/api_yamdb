@@ -1,4 +1,3 @@
-from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -70,20 +69,11 @@ class TitleSerializer(serializers.ModelSerializer):
 
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
         fields = '__all__'
-
-    def get_rating(self, obj):
-        """
-        Рассчитывает средний рейтинг произведения на основе отзывов.
-        """
-        average_rating = obj.reviews.aggregate(Avg('score')).get('score__avg')
-        if average_rating is not None:
-            return round(average_rating)
-        return None
 
 
 class TitleCreateSerializer(serializers.ModelSerializer):

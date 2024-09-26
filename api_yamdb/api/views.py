@@ -57,8 +57,9 @@ class RegistrationView(APIView):
             ):
                 user.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
         user = serializer.save()
         self.send_mail(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -138,8 +139,9 @@ class GenreViewSet(CreateListDestroyViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     """ViewSet для управления произведениями."""
 
-    queryset = Title.objects.annotate(
-        rating=Avg('reviews__score')).order_by('name')
+    queryset = Title.objects.annotate(rating=Avg('reviews__score')).order_by(
+        'name'
+    )
     permission_classes = (AllReadOrIsAdminOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
@@ -155,8 +157,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """ViewSet для управления отзывами."""
 
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,
-                          AdminModerAuthorOrReadOnly,)
+    permission_classes = (
+        IsAuthenticatedOrReadOnly,
+        AdminModerAuthorOrReadOnly,
+    )
     http_method_names = settings.METHOD_ALLOW
 
     def get_title(self):
@@ -175,8 +179,10 @@ class CommentViewSet(viewsets.ModelViewSet):
     """ViewSet для управления Комментариями."""
 
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,
-                          AdminModerAuthorOrReadOnly,)
+    permission_classes = (
+        IsAuthenticatedOrReadOnly,
+        AdminModerAuthorOrReadOnly,
+    )
     http_method_names = settings.METHOD_ALLOW
 
     def get_review(self):

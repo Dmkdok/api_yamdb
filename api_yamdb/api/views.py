@@ -6,7 +6,10 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
@@ -17,9 +20,8 @@ from .filtres import TitleFilter
 from .mixins import CreateListDestroyViewSet
 from .permissions import (
     AdminModerAuthorOrReadOnly,
-    AllReadOrIsAdminOnly,
-    IsAdmin,
-    IsAuthenticatedOrReadOnly,
+    AllReadOrAuthAdminOnly,
+    AuthAdminOnly,
 )
 from .serializers import (
     CategorySerializer,
@@ -70,27 +72,27 @@ class AuthTokenView(APIView):
 
     def post(self, request):
         serializer = ObtainTokenSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            user = get_object_or_404(
-                User, username=serializer.validated_data['username']
-            )
-            if default_token_generator.check_token(
-                user, serializer.validated_data['confirmation_code']
-            ):
-                token = AccessToken.for_user(user)
-                return Response(
-                    {'token': str(token.access_token)},
-                    status=status.HTTP_200_OK,
-                )
+        serializer.is_valid(raise_exception=True)
+        user = get_object_or_404(
+            User, username=serializer.validated_data['username']
+        )
+        if default_token_generator.check_token(
+            user, serializer.validated_data['confirmation_code']
+        ):
+            token = AccessToken.for_user(user)
             return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                {'token': str(token.access_token)},
+                status=status.HTTP_200_OK,
             )
+        return Response(
+            serializer.errors, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class UserViewSet(viewsets.ModelViewSet):
     """ViewSet для управления пользователями."""
 
-    permission_classes = (IsAdmin,)
+    permission_classes = (AuthAdminOnly,)
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = "username"
@@ -120,7 +122,7 @@ class CategoryViewSet(CreateListDestroyViewSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (AllReadOrIsAdminOnly,)
+    permission_classes = (AllReadOrAuthAdminOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
@@ -130,7 +132,7 @@ class GenreViewSet(CreateListDestroyViewSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (AllReadOrIsAdminOnly,)
+    permission_classes = (AllReadOrAuthAdminOnly,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ('name',)
     lookup_field = 'slug'
@@ -142,7 +144,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(rating=Avg('reviews__score')).order_by(
         'name'
     )
-    permission_classes = (AllReadOrIsAdminOnly,)
+    permission_classes = (AllReadOrAuthAdminOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     http_method_names = settings.METHOD_ALLOW

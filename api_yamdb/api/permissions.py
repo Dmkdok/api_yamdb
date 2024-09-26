@@ -1,15 +1,6 @@
 from rest_framework import permissions
 
 
-class IsAuthenticatedOrReadOnly(permissions.BasePermission):
-    """Безопасные запросы разрешены всем.
-    Небезопасные только авторизованным пользователям."""
-
-    def has_permission(self, request, view):
-        return (request.method in permissions.SAFE_METHODS
-                or request.user.is_authenticated)
-
-
 class AdminModerAuthorOrReadOnly(permissions.BasePermission):
     """Безопасные запросы разрешены всем.
     Небозопасные только автору поста, модератору или администратору."""
@@ -21,9 +12,9 @@ class AdminModerAuthorOrReadOnly(permissions.BasePermission):
                 or request.user.is_admin)
 
 
-class AllReadOrIsAdminOnly(permissions.BasePermission):
+class AllReadOrAuthAdminOnly(permissions.BasePermission):
     """Безопасные запросы разрешены всем.
-    Небезопасные только администратору."""
+    Небезопасные только авторизованному администратору."""
 
     def has_permission(self, request, view):
         return (
@@ -35,7 +26,7 @@ class AllReadOrIsAdminOnly(permissions.BasePermission):
         )
 
 
-class IsAdmin(permissions.BasePermission):
+class AuthAdminOnly(permissions.BasePermission):
     """Все запросы разрешены только авторизованному администратору."""
 
     def has_permission(self, request, view):

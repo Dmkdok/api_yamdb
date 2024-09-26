@@ -1,9 +1,13 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import (
+    MaxValueValidator,
+    MinValueValidator,
+    RegexValidator
+)
 from django.db import models
 
-from .validators import validate_year
+from .validators import validate_username, validate_year
 
 
 class User(AbstractUser):
@@ -19,8 +23,19 @@ class User(AbstractUser):
         (ADMIN, 'Администратор'),
     ]
 
+    username = models.CharField(
+        'Имя пользователя',
+        max_length=settings.USERNAME_LENGTH,
+        unique=True,
+        validators=[
+            RegexValidator(regex=r'^[\w.@+-]+\Z'),
+            validate_username,
+        ],
+    )
     email = models.EmailField(
-        'Почта', max_length=settings.MAX_EMAIL_LENGTH, unique=True
+        'Почта',
+        max_length=settings.MAX_EMAIL_LENGTH,
+        unique=True,
     )
     role = models.CharField(
         'Роль пользователя',
@@ -34,7 +49,7 @@ class User(AbstractUser):
         constraints = [
             models.UniqueConstraint(
                 fields=['username', 'email'], name='unique_user'
-            )
+            ),
         ]
 
     def __str__(self):
@@ -95,7 +110,7 @@ class Title(models.Model):
     )
     description = models.TextField('Описание', blank=True, null=True)
     genre = models.ManyToManyField(
-        Genre, through='GenreTitle', related_name='titles'
+        Genre, related_name='titles'
     )
     category = models.ForeignKey(
         Category,

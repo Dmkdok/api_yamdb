@@ -8,7 +8,7 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import (
     IsAuthenticated,
-    IsAuthenticatedOrReadOnly
+    IsAuthenticatedOrReadOnly,
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -30,7 +30,6 @@ from .serializers import (
     ObtainTokenSerializer,
     RegistrationSerializer,
     ReviewSerializer,
-    TitleCreateSerializer,
     TitleSerializer,
     UserSerializer,
 )
@@ -73,9 +72,7 @@ class AuthTokenView(APIView):
                 {'token': str(token.access_token)},
                 status=status.HTTP_200_OK,
             )
-        return Response(
-            serializer.errors, status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -140,7 +137,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action in ('create', 'update', 'partial_update'):
-            return TitleCreateSerializer
+            return TitleSerializer
         return TitleSerializer
 
 

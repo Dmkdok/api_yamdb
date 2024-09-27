@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import (
     MaxValueValidator,
     MinValueValidator,
-    RegexValidator
+    RegexValidator,
 )
 from django.db import models
 
@@ -105,13 +105,11 @@ class Title(models.Model):
         max_length=settings.MAX_NAME_LENGTH,
         db_index=True,
     )
-    year = models.PositiveSmallIntegerField(
+    year = models.SmallIntegerField(
         'Год выпуска', validators=(validate_year,), db_index=True
     )
     description = models.TextField('Описание', blank=True, null=True)
-    genre = models.ManyToManyField(
-        Genre, related_name='titles'
-    )
+    genre = models.ManyToManyField(Genre, related_name='titles')
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,

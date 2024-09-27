@@ -49,18 +49,7 @@ class RegistrationView(APIView):
 
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
-        if not serializer.is_valid():
-            user = User.objects.filter(
-                email=serializer.initial_data.get('email')
-            ).first()
-            if user and user.username == serializer.initial_data.get(
-                'username'
-            ):
-                user.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
+        serializer.is_valid(raise_exception=True)
         user = serializer.save()
         self.send_mail(user)
         return Response(serializer.data, status=status.HTTP_200_OK)

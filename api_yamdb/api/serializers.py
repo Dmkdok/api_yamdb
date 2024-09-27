@@ -28,7 +28,10 @@ class RegistrationSerializer(serializers.Serializer):
 
     username = serializers.CharField(
         max_length=settings.USERNAME_LENGTH,
-        validators=[RegexValidator(regex=r'^[\w.@+-]+\Z'), validate_username],
+        validators=[
+            UnicodeUsernameValidator(),
+            validate_username,
+        ],
     )
     email = serializers.EmailField(max_length=settings.MAX_EMAIL_LENGTH)
 
@@ -69,25 +72,28 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для произведений."""
 
-    genre = serializers.SlugRelatedField(
-        slug_field='slug', many=True, queryset=Genre.objects.all()
-    )
-    category = serializers.SlugRelatedField(
-        slug_field='slug', queryset=Category.objects.all()
-    )
+    genre = GenreSerializer(many=True, read_only=True)
+    category = CategorySerializer(read_only=True)
     rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
         fields = '__all__'
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['genre'] = GenreSerializer(
-            instance.genre.all(), many=True
-        ).data
-        representation['category'] = CategorySerializer(instance.category).data
-        return representation
+
+class TitleCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор для созадния произведений."""
+
+    genre = serializers.SlugRelatedField(
+        slug_field='slug', many=True, queryset=Genre.objects.all()
+    )
+    category = serializers.SlugRelatedField(
+        slug_field='slug', queryset=Category.objects.all()
+    )
+
+    class Meta:
+        model = Title
+        fields = '__all__'
 
 
 class ReviewSerializer(serializers.ModelSerializer):

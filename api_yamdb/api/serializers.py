@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.validators import RegexValidator
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db.utils import IntegrityError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -29,8 +29,8 @@ class RegistrationSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=settings.USERNAME_LENGTH,
         validators=[
-            RegexValidator(regex=r'^[\w.@+-]+\Z'),
-            validate_username
+            UnicodeUsernameValidator(),
+            validate_username,
         ],
     )
     email = serializers.EmailField(max_length=settings.MAX_EMAIL_LENGTH)

@@ -39,7 +39,7 @@ YaMDb - это API для сбора и хранения отзывов поль
 1.  **Клонируйте репозиторий:**
 
     ```bash
-    git clone https://github.com/ваш_пользователь/api_yamdb.git
+    git clone https://github.com/Dmkdok/api_yamdb.git
     ```
 
 2.  **Создайте и активируйте виртуальное окружение:**
